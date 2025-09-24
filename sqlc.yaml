@@ -8,10 +8,10 @@ sql:
   - schema: "./db/migration/"
     queries: "./db/query/"
     engine: "postgresql"
-    # get:
-    #   go:
-    #     package: "db"
-    #     out: "internal/db"
+    gen:
+      go:
+        # package: "db"
+        out: "db/sqlc"
 # overrides:
 #     go: null
 plugins: []

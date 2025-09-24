@@ -30,11 +30,11 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
 
 	now := time.Now()
 	args := &db.CreateUserParams{
-		username:      payload.Username,
-		email:         payload.Email,
-		passwrod_hash: payload.Password,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		Username:     payload.Username,
+		Email:        payload.Email,
+		PasswordHash: payload.Password,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 	}
 
 	_, err := cc.db.CreateUser(ctx, *args)
@@ -43,4 +43,8 @@ func (cc *UserController) CreateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "Failed retrieving contact", "error": err.Error()})
 	}
 	ctx.JSON(http.StatusOK, gin.H{"status": "successfully created user"})
+}
+
+func (cc *UserController) GetUserByID(ctx *gin.Context) {
+
 }
