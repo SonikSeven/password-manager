@@ -22,6 +22,9 @@ var (
 
 	UserController controllers.UserController
 	UserRoutes     routes.UserRoutes
+
+	PasswordController controllers.PasswordController
+	PasswordRoutes     routes.PasswordRoutes
 )
 
 func init() {
@@ -41,8 +44,11 @@ func init() {
 
 	fmt.Println("PostgreSql connected successfully...")
 
-	UserController = *controllers.NewUserController(db, ctx)
+	UserController = *controllers.NewUserController(config, db, ctx)
 	UserRoutes = routes.NewRouteUser(UserController)
+
+	PasswordController = *controllers.NewPasswordController(config, db, ctx)
+	PasswordRoutes = routes.NewRoutePassword(PasswordController)
 
 	server = gin.Default()
 }
@@ -61,6 +67,7 @@ func main() {
 	})
 
 	UserRoutes.UserRoute(router)
+	PasswordRoutes.PasswordRoute(router, []byte(config.JWTSecret)) // Improve?
 
 	server.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"status": "failed", "message": fmt.Sprintf("The specified route %s not found", ctx.Request.URL)})
