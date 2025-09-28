@@ -141,18 +141,26 @@ func (q *Queries) GetPasswordByID(ctx context.Context, arg GetPasswordByIDParams
 }
 
 const listPasswords = `-- name: ListPasswords :many
-SELECT 
-    id,
-    user_id,
-    service,
-    url,
-    notes,
-    icon,
-    created_at,
-    updated_at
+SELECT id, user_id, service, url, notes, icon, created_at, updated_at
 FROM passwords
 WHERE user_id = $1
+  AND (
+    $2::text IS NULL OR username ILIKE '%' || $2 || '%'
+    OR url ILIKE '%' || $2 || '%'
+    OR notes ILIKE '%' || $2 || '%'
+  )
+  AND (
+    $3::text IS NULL
+    OR url ~* ('(https?://)?([^/]*\.)?' || $3)
+  )
+ORDER BY created_at DESC
 `
+
+type ListPasswordsParams struct {
+	UserID int64
+	Search string
+	Filter string
+}
 
 type ListPasswordsRow struct {
 	ID        int64
@@ -165,8 +173,8 @@ type ListPasswordsRow struct {
 	UpdatedAt time.Time
 }
 
-func (q *Queries) ListPasswords(ctx context.Context, userID int64) ([]ListPasswordsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listPasswords, userID)
+func (q *Queries) ListPasswords(ctx context.Context, arg ListPasswordsParams) ([]ListPasswordsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPasswords, arg.UserID, arg.Search, arg.Filter)
 	if err != nil {
 		return nil, err
 	}

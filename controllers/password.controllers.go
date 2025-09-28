@@ -52,7 +52,15 @@ func (pc *PasswordController) ListPasswords(ctx *gin.Context) {
 		return
 	}
 
-	passwords, err := pc.db.ListPasswords(ctx, userID)
+	search := ctx.Query("search")
+	domain := ctx.Query("domain")
+
+	passwords, err := pc.db.ListPasswords(ctx, db.ListPasswordsParams{
+		UserID: userID,
+		Search: search,
+		Filter: domain,
+	})
+
 	if err != nil {
 		log.Println("ListPasswords error:", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve passwords"})

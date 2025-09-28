@@ -1,15 +1,17 @@
 -- name: ListPasswords :many
-SELECT 
-    id,
-    user_id,
-    service,
-    url,
-    notes,
-    icon,
-    created_at,
-    updated_at
+SELECT id, user_id, service, url, notes, icon, created_at, updated_at
 FROM passwords
-WHERE user_id = $1;
+WHERE user_id = $1
+  AND (
+    @search::text IS NULL OR username ILIKE '%' || @search || '%'
+    OR url ILIKE '%' || @search || '%'
+    OR notes ILIKE '%' || @search || '%'
+  )
+  AND (
+    @filter::text IS NULL
+    OR url ~* ('(https?://)?([^/]*\.)?' || @filter)
+  )
+ORDER BY created_at DESC;
 
 -- name: GetPasswordByID :one
 SELECT * FROM passwords
