@@ -7,39 +7,64 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const createPassword = `-- name: CreatePassword :one
 INSERT INTO passwords (
     user_id,
-    name,
-    password
+    service,
+    username,
+    password,
+    url,
+    notes,
+    icon
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, user_id, created_at, updated_at
+RETURNING id, user_id, service, url, notes, icon, created_at, updated_at
 `
 
 type CreatePasswordParams struct {
 	UserID   int64
-	Name     string
+	Service  string
+	Username string
 	Password string
+	Url      sql.NullString
+	Notes    sql.NullString
+	Icon     sql.NullString
 }
 
 type CreatePasswordRow struct {
 	ID        int64
 	UserID    int64
+	Service   string
+	Url       sql.NullString
+	Notes     sql.NullString
+	Icon      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 func (q *Queries) CreatePassword(ctx context.Context, arg CreatePasswordParams) (CreatePasswordRow, error) {
-	row := q.db.QueryRowContext(ctx, createPassword, arg.UserID, arg.Name, arg.Password)
+	row := q.db.QueryRowContext(ctx, createPassword,
+		arg.UserID,
+		arg.Service,
+		arg.Username,
+		arg.Password,
+		arg.Url,
+		arg.Notes,
+		arg.Icon,
+	)
 	var i CreatePasswordRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.Service,
+		&i.Url,
+		&i.Notes,
+		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -50,7 +75,7 @@ const deletePassword = `-- name: DeletePassword :one
 DELETE FROM passwords
 WHERE id = $1
     AND user_id = $2
-RETURNING id, user_id, created_at, updated_at
+RETURNING id, user_id, service, url, notes, icon, created_at, updated_at
 `
 
 type DeletePasswordParams struct {
@@ -61,6 +86,10 @@ type DeletePasswordParams struct {
 type DeletePasswordRow struct {
 	ID        int64
 	UserID    int64
+	Service   string
+	Url       sql.NullString
+	Notes     sql.NullString
+	Icon      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -71,6 +100,10 @@ func (q *Queries) DeletePassword(ctx context.Context, arg DeletePasswordParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
+		&i.Service,
+		&i.Url,
+		&i.Notes,
+		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -78,7 +111,7 @@ func (q *Queries) DeletePassword(ctx context.Context, arg DeletePasswordParams) 
 }
 
 const getPasswordByID = `-- name: GetPasswordByID :one
-SELECT id, name, password, user_id, created_at, updated_at FROM passwords
+SELECT id, user_id, service, username, password, url, notes, icon, created_at, updated_at FROM passwords
 WHERE id = $1
     AND user_id = $2
 LIMIT 1
@@ -94,9 +127,13 @@ func (q *Queries) GetPasswordByID(ctx context.Context, arg GetPasswordByIDParams
 	var i Password
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
-		&i.Password,
 		&i.UserID,
+		&i.Service,
+		&i.Username,
+		&i.Password,
+		&i.Url,
+		&i.Notes,
+		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -104,24 +141,46 @@ func (q *Queries) GetPasswordByID(ctx context.Context, arg GetPasswordByIDParams
 }
 
 const listPasswords = `-- name: ListPasswords :many
-SELECT id, name, password, user_id, created_at, updated_at FROM passwords
+SELECT 
+    id,
+    user_id,
+    service,
+    url,
+    notes,
+    icon,
+    created_at,
+    updated_at
+FROM passwords
 WHERE user_id = $1
 `
 
-func (q *Queries) ListPasswords(ctx context.Context, userID int64) ([]Password, error) {
+type ListPasswordsRow struct {
+	ID        int64
+	UserID    int64
+	Service   string
+	Url       sql.NullString
+	Notes     sql.NullString
+	Icon      sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ListPasswords(ctx context.Context, userID int64) ([]ListPasswordsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listPasswords, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Password
+	var items []ListPasswordsRow
 	for rows.Next() {
-		var i Password
+		var i ListPasswordsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
-			&i.Password,
 			&i.UserID,
+			&i.Service,
+			&i.Url,
+			&i.Notes,
+			&i.Icon,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -141,25 +200,36 @@ func (q *Queries) ListPasswords(ctx context.Context, userID int64) ([]Password, 
 const updatePassword = `-- name: UpdatePassword :one
 UPDATE passwords
 SET 
-    name = $3,
-    password = $4,
+    service = $3,
+    username = $4,
+    password = $5,
+    url = $6,
+    notes = $7,
+    icon = $8,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
   AND user_id = $2
-RETURNING id, user_id, name, created_at, updated_at
+RETURNING id, user_id, service, url, notes, icon, created_at, updated_at
 `
 
 type UpdatePasswordParams struct {
 	ID       int64
 	UserID   int64
-	Name     string
+	Service  string
+	Username string
 	Password string
+	Url      sql.NullString
+	Notes    sql.NullString
+	Icon     sql.NullString
 }
 
 type UpdatePasswordRow struct {
 	ID        int64
 	UserID    int64
-	Name      string
+	Service   string
+	Url       sql.NullString
+	Notes     sql.NullString
+	Icon      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -168,14 +238,21 @@ func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) 
 	row := q.db.QueryRowContext(ctx, updatePassword,
 		arg.ID,
 		arg.UserID,
-		arg.Name,
+		arg.Service,
+		arg.Username,
 		arg.Password,
+		arg.Url,
+		arg.Notes,
+		arg.Icon,
 	)
 	var i UpdatePasswordRow
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.Name,
+		&i.Service,
+		&i.Url,
+		&i.Notes,
+		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

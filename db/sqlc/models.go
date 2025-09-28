@@ -11,21 +11,21 @@ import (
 
 type Password struct {
 	ID        int64
-	Name      string
-	Password  string
 	UserID    int64
+	Service   string
+	Username  string
+	Password  string
+	Url       sql.NullString
+	Notes     sql.NullString
+	Icon      sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type User struct {
 	ID           int64
-	Username     string
 	Email        string
 	PasswordHash string
-	Url          sql.NullString
-	Notes        sql.NullString
-	Icon         sql.NullString
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

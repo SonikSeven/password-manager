@@ -12,41 +12,40 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    username,
     email,
     password_hash,
     created_at,
     updated_at
 ) VALUES (
-    $1, $2, $3, $4, $5
-) RETURNING id, username, email, password_hash, url, notes, icon, created_at, updated_at
+    $1, $2, $3, $4
+) RETURNING id, email, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Username     string
 	Email        string
 	PasswordHash string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID        int64
+	Email     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
-		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
-		&i.PasswordHash,
-		&i.Url,
-		&i.Notes,
-		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -54,7 +53,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, username, email, password_hash, url, notes, icon, created_at, updated_at FROM users
+SELECT id, email, password_hash, created_at, updated_at FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -63,12 +62,8 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.Url,
-		&i.Notes,
-		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -76,7 +71,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, email, password_hash, url, notes, icon, created_at, updated_at FROM users
+SELECT id, email, password_hash, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -85,12 +80,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
-		&i.Url,
-		&i.Notes,
-		&i.Icon,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

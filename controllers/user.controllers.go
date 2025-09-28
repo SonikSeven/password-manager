@@ -40,7 +40,6 @@ func (uc *UserController) Register(ctx *gin.Context) {
 
 	now := time.Now()
 	args := &db.CreateUserParams{
-		Username:     payload.Username,
 		Email:        payload.Email,
 		PasswordHash: string(hashedPassword),
 		CreatedAt:    now,

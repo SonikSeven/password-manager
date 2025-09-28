@@ -28,11 +28,10 @@ func GetUserID(c *gin.Context) (int64, error) {
 }
 
 type ListPasswordsResponse struct {
-	Passwords []db.Password `json:"passwords"`
+	Passwords []db.ListPasswordsRow `json:"passwords"`
 }
 
 type GetPasswordResponse struct {
-	// Name db.Name `json:"name"`
 	Password db.Password `json:"password"`
 }
 
@@ -60,7 +59,12 @@ func (pc *PasswordController) ListPasswords(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, ListPasswordsResponse{Passwords: passwords})
+	resp := make([]schemas.PasswordResponse, len(passwords))
+	for i, p := range passwords {
+		resp[i] = schemas.MapPasswordRow(p)
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"passwords": resp})
 }
 
 func (pc *PasswordController) GetPassword(ctx *gin.Context) {
@@ -87,15 +91,23 @@ func (pc *PasswordController) GetPassword(ctx *gin.Context) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "Password not found"})
-			return
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve password"})
 		}
-
 		log.Println("GetPassword error:", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve password"})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, GetPasswordResponse{Password: password})
+	decryptedPassword, err := util.Decrypt(password.Password, pc.config.EncryptionKeyRaw)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to decrypt password"})
+		return
+	}
+	password.Password = decryptedPassword
+
+	resp := schemas.MapPassword(password)
+
+	ctx.JSON(http.StatusOK, gin.H{"password": resp})
 }
 
 func (pc *PasswordController) CreatePassword(ctx *gin.Context) {
@@ -112,10 +124,21 @@ func (pc *PasswordController) CreatePassword(ctx *gin.Context) {
 		return
 	}
 
+	encryptedPassword, err := util.Encrypt(payload.Password, pc.config.EncryptionKeyRaw)
+	if err != nil {
+		log.Println("CreatePassword error:", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encrypt password"})
+		return
+	}
+
 	args := &db.CreatePasswordParams{
 		UserID:   userID,
-		Name:     payload.Name,
-		Password: payload.Password,
+		Service:  payload.Service,
+		Username: payload.Username,
+		Password: encryptedPassword,
+		Url:      sql.NullString{String: payload.URL, Valid: payload.URL != ""},
+		Notes:    sql.NullString{String: payload.Notes, Valid: payload.Notes != ""},
+		Icon:     sql.NullString{String: payload.Icon, Valid: payload.Icon != ""},
 	}
 
 	_, err = pc.db.CreatePassword(ctx, *args)
@@ -149,11 +172,22 @@ func (pc *PasswordController) UpdatePassword(ctx *gin.Context) {
 		return
 	}
 
+	encryptedPassword, err := util.Encrypt(payload.Password, pc.config.EncryptionKeyRaw)
+	if err != nil {
+		log.Println("CreatePassword error:", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encrypt password"})
+		return
+	}
+
 	args := &db.UpdatePasswordParams{
 		ID:       passwordID,
 		UserID:   userID,
-		Name:     payload.Name,
-		Password: payload.Password,
+		Service:  payload.Service,
+		Username: payload.Username,
+		Password: encryptedPassword,
+		Url:      sql.NullString{String: payload.URL, Valid: payload.URL != ""},
+		Notes:    sql.NullString{String: payload.Notes, Valid: payload.Notes != ""},
+		Icon:     sql.NullString{String: payload.Icon, Valid: payload.Icon != ""},
 	}
 
 	_, err = pc.db.UpdatePassword(ctx, *args)
