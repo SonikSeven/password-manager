@@ -34,12 +34,12 @@ http://localhost:8000
 You can now interact with the API endpoints listed below.
 ## Endpoints
 
-| Endpoint              | HTTP Method & Access                         | Fields                                             | URL Parameters   |
-| --------------------- | -------------------------------------------- | -------------------------------------------------- | ---------------- |
-| `/api/register`       | `POST`: anyone                               | email\*<br>password\*                              |                  |
-| `/api/login`          | `POST`: anyone                               | email\*<br>password\*                              |                  |
-| `/api/passwords`      | `GET`: authenticated user                    |                                                    | search<br>domain |
-| `/api/passwords/<id>` | `GET`, `PATCH`, `DELETE`: authenticated user | username\*<br>password\*<br>url\*<br>notes<br>icon |                  |
+| Endpoint              | HTTP Method & Access                         | JSON Fields                                                  | URL Parameters   |
+| --------------------- | -------------------------------------------- | ------------------------------------------------------------ | ---------------- |
+| `/api/register`       | `POST`: anyone                               | `email`\*<br>`password`\*                                    |                  |
+| `/api/login`          | `POST`: anyone                               | `email`\*<br>`password`\*                                    |                  |
+| `/api/passwords`<br>  | `GET`, `POST`: authenticated user            | `username`\*<br>`password`\*<br>`url`\*<br>`notes`<br>`icon` | search<br>domain |
+| `/api/passwords/<id>` | `GET`, `PATCH`, `DELETE`: authenticated user | `username`\*<br>`password`\*<br>`url`\*<br>`notes`<br>`icon` |                  |
 ### **Note**
 
 - The included `app.env` is for **demonstration purposes only**. It contains placeholder credentials and settings to help you run the app locally. **Do not use it in production.**
