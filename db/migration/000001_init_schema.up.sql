@@ -9,10 +9,9 @@ CREATE TABLE users (
 CREATE TABLE passwords (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    service VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    url VARCHAR(255),
+    url VARCHAR(255) NOT NULL,
     notes TEXT,
     icon VARCHAR(255),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

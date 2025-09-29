@@ -7,19 +7,17 @@ import (
 )
 
 type CreatePassword struct {
-	Service  string `json:"service" binding:"required,min=1"`
 	Username string `json:"username" binding:"required,min=1"`
 	Password string `json:"password" binding:"required,min=8"`
-	URL      string `json:"url"`
+	URL      string `json:"url" binding:"required,min=1"`
 	Notes    string `json:"notes"`
 	Icon     string `json:"icon"`
 }
 
 type UpdatePassword struct {
-	Service  string `json:"service" binding:"required,min=1"`
 	Username string `json:"username" binding:"required,min=1"`
 	Password string `json:"password" binding:"required,min=8"`
-	URL      string `json:"url"`
+	URL      string `json:"url" binding:"required,min=1"`
 	Notes    string `json:"notes"`
 	Icon     string `json:"icon"`
 }
@@ -27,8 +25,7 @@ type UpdatePassword struct {
 type PasswordResponse struct {
 	ID        int64   `json:"id"`
 	UserID    int64   `json:"user_id"`
-	Service   string  `json:"service"`
-	Url       *string `json:"url,omitempty"`
+	URL       string  `json:"url"`
 	Notes     *string `json:"notes,omitempty"`
 	Icon      *string `json:"icon,omitempty"`
 	CreatedAt string  `json:"created_at"`
@@ -36,11 +33,8 @@ type PasswordResponse struct {
 }
 
 func MapPassword(p db.Password) PasswordResponse {
-	var url, notes, icon *string
+	var notes, icon *string
 
-	if p.Url.Valid {
-		url = &p.Url.String
-	}
 	if p.Notes.Valid {
 		notes = &p.Notes.String
 	}
@@ -51,8 +45,7 @@ func MapPassword(p db.Password) PasswordResponse {
 	return PasswordResponse{
 		ID:        p.ID,
 		UserID:    p.UserID,
-		Service:   p.Service,
-		Url:       url,
+		URL:       p.Url,
 		Notes:     notes,
 		Icon:      icon,
 		CreatedAt: p.CreatedAt.Format(time.RFC3339),
@@ -61,11 +54,8 @@ func MapPassword(p db.Password) PasswordResponse {
 }
 
 func MapPasswordRow(p db.ListPasswordsRow) PasswordResponse {
-	var url, notes, icon *string
+	var notes, icon *string
 
-	if p.Url.Valid {
-		url = &p.Url.String
-	}
 	if p.Notes.Valid {
 		notes = &p.Notes.String
 	}
@@ -76,8 +66,7 @@ func MapPasswordRow(p db.ListPasswordsRow) PasswordResponse {
 	return PasswordResponse{
 		ID:        p.ID,
 		UserID:    p.UserID,
-		Service:   p.Service,
-		Url:       url,
+		URL:       p.Url,
 		Notes:     notes,
 		Icon:      icon,
 		CreatedAt: p.CreatedAt.Format(time.RFC3339),

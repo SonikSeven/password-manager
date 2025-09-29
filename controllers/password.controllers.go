@@ -27,14 +27,6 @@ func GetUserID(c *gin.Context) (int64, error) {
 	return id, nil
 }
 
-type ListPasswordsResponse struct {
-	Passwords []db.ListPasswordsRow `json:"passwords"`
-}
-
-type GetPasswordResponse struct {
-	Password db.Password `json:"password"`
-}
-
 type PasswordController struct {
 	config util.Config
 	db     *db.Queries
@@ -141,10 +133,9 @@ func (pc *PasswordController) CreatePassword(ctx *gin.Context) {
 
 	args := &db.CreatePasswordParams{
 		UserID:   userID,
-		Service:  payload.Service,
 		Username: payload.Username,
 		Password: encryptedPassword,
-		Url:      sql.NullString{String: payload.URL, Valid: payload.URL != ""},
+		Url:      payload.URL,
 		Notes:    sql.NullString{String: payload.Notes, Valid: payload.Notes != ""},
 		Icon:     sql.NullString{String: payload.Icon, Valid: payload.Icon != ""},
 	}
@@ -190,10 +181,9 @@ func (pc *PasswordController) UpdatePassword(ctx *gin.Context) {
 	args := &db.UpdatePasswordParams{
 		ID:       passwordID,
 		UserID:   userID,
-		Service:  payload.Service,
 		Username: payload.Username,
 		Password: encryptedPassword,
-		Url:      sql.NullString{String: payload.URL, Valid: payload.URL != ""},
+		Url:      payload.URL,
 		Notes:    sql.NullString{String: payload.Notes, Valid: payload.Notes != ""},
 		Icon:     sql.NullString{String: payload.Icon, Valid: payload.Icon != ""},
 	}

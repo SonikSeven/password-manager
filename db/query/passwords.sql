@@ -1,5 +1,5 @@
 -- name: ListPasswords :many
-SELECT id, user_id, service, url, notes, icon, created_at, updated_at
+SELECT id, user_id, url, notes, icon, created_at, updated_at
 FROM passwords
 WHERE user_id = $1
   AND (
@@ -22,33 +22,31 @@ LIMIT 1;
 -- name: CreatePassword :one
 INSERT INTO passwords (
     user_id,
-    service,
     username,
     password,
     url,
     notes,
     icon
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4, $5, $6
 )
-RETURNING id, user_id, service, url, notes, icon, created_at, updated_at;
+RETURNING id, user_id, url, notes, icon, created_at, updated_at;
 
 -- name: UpdatePassword :one
 UPDATE passwords
 SET 
-    service = $3,
-    username = $4,
-    password = $5,
-    url = $6,
-    notes = $7,
-    icon = $8,
+    username = $3,
+    password = $4,
+    url = $5,
+    notes = $6,
+    icon = $7,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
   AND user_id = $2
-RETURNING id, user_id, service, url, notes, icon, created_at, updated_at;
+RETURNING id, user_id, url, notes, icon, created_at, updated_at;
 
 -- name: DeletePassword :one
 DELETE FROM passwords
 WHERE id = $1
     AND user_id = $2
-RETURNING id, user_id, service, url, notes, icon, created_at, updated_at;
+RETURNING id, user_id, url, notes, icon, created_at, updated_at;

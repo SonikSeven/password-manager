@@ -12,10 +12,9 @@ import (
 type Password struct {
 	ID        int64
 	UserID    int64
-	Service   string
 	Username  string
 	Password  string
-	Url       sql.NullString
+	Url       string
 	Notes     sql.NullString
 	Icon      sql.NullString
 	CreatedAt time.Time
